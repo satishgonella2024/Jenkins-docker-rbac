@@ -1,49 +1,41 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_CREDENTIALS = credentials('docker-hub-creds')  // Jenkins credentials ID
-        DOCKER_IMAGE = 'myusername/jenkins-docker-sample:latest' // Update with your Docker Hub username
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
                 script {
-                    echo "Cleaning workspace..."
+                    echo "Cleaning up workspace..."
                     sh 'rm -rf *'
 
-                    echo "Checking out repository..."
-                    git branch: 'main',
-                        credentialsId: '',
-                        url: 'git@github.com:satishgonella2024/Jenkins-docker-rbac.git'
+                    echo "Cloning repository..."
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/main']],
+                        userRemoteConfigs: [[
+                            url: 'git@github.com:satishgonella2024/Jenkins-docker-rbac.git',
+                            credentialsId: ''  // Leave blank for SSH-based authentication
+                        ]]
+                    ])
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                sh '''
-                echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin
-                docker push $DOCKER_IMAGE
-                '''
+                script {
+                    sh 'docker build -t myusername/jenkins-docker-sample:latest .'
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline succeeded! Docker image pushed to Docker Hub: $DOCKER_IMAGE"
+            echo "Pipeline succeeded!"
         }
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo "Pipeline failed. Check logs for errors."
         }
     }
 }
-
