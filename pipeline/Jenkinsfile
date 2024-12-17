@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/satishgonella2024/Jenkins-docker-rbac.git'
+                git 'git@github.com:satishgonella2024/Jenkins-docker-rbac.git'
             }
         }
 
